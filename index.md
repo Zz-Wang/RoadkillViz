@@ -316,3 +316,9 @@ callbacks.shift()();
 
 [slidify](http://ramnathv.github.io/slidify/)  
 [googleVis](https://developers.google.com/chart/interactive/docs/reference)  
+
+---
+
+## Thanks for watching !
+
+

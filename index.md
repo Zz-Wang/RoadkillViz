@@ -27,9 +27,9 @@ To save beautiful animals like this Chinese leopard cat!
 
 ## How
 
-[Taiwan Roadkill Observation Network](http://roadkill.tw/) has been collect and document roadkill data for many years. These data can be used to raise awareness of conservation and help government making better regulations.  
+<a href="http://roadkill.tw/" target="_blank">Taiwan Roadkill Observation Network</a> has been collect and document roadkill data for many years. These data can be used to raise awareness of conservation and help government making better regulations.  
 
-The data can be found on [data.gov.tw](http://data.gov.tw/node/8338).
+The data can be found on <a href="http://data.gov.tw/node/8338" target="_blank">data.gov.tw</a>.
 
 ---
 
@@ -47,14 +47,14 @@ In this project, I use the data to create visualization to help people to unders
 ## Example 1 
 
 <!-- PieChart generated in R 3.1.1 by googleVis 0.5.8 package -->
-<!-- Sat Jan 24 14:05:19 2015 -->
+<!-- Sat Jan 24 16:16:03 2015 -->
 
 
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataPieChartID110c734c1c61 () {
+function gvisDataPieChartID6a4436717b5 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -78,15 +78,16 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartPieChartID110c734c1c61() {
-var data = gvisDataPieChartID110c734c1c61();
+function drawChartPieChartID6a4436717b5() {
+var data = gvisDataPieChartID6a4436717b5();
 var options = {};
 options["allowHtml"] = true;
 options["title"] = "Roadkill percentage by Month";
+options["width"] =    960;
 options["height"] =    480;
 
     var chart = new google.visualization.PieChart(
-    document.getElementById('PieChartID110c734c1c61')
+    document.getElementById('PieChartID6a4436717b5')
     );
     chart.draw(data,options);
     
@@ -110,9 +111,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartPieChartID110c734c1c61);
+callbacks.push(drawChartPieChartID6a4436717b5);
 })();
-function displayChartPieChartID110c734c1c61() {
+function displayChartPieChartID6a4436717b5() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -136,12 +137,12 @@ callbacks.shift()();
 </script>
  
 <!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartPieChartID110c734c1c61"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartPieChartID6a4436717b5"></script>
  
 <!-- divChart -->
   
-<div id="PieChartID110c734c1c61" 
-  style="width: 100%; height: 480;">
+<div id="PieChartID6a4436717b5" 
+  style="width: 960; height: 480;">
 </div>
 
 ---
@@ -314,8 +315,9 @@ callbacks.shift()();
 
 ## Acknowledgements
 
-[slidify](http://ramnathv.github.io/slidify/)  
-[googleVis](https://developers.google.com/chart/interactive/docs/reference)  
+<a href="http://ramnathv.github.io/slidify/" target="_blank">slidify</a>
+<a href="https://developers.google.com/chart/interactive/docs/reference" target="_blank">googleVis</a>
+<a href="https://www.facebook.com/wfas309" target="_blank">Image credit: Wildlife First Aid Station Facebook page</a>
 
 ---
 

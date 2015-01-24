@@ -29,9 +29,9 @@ To save beautiful animals like this Chinese leopard cat!
 
 ## How
 
-[Taiwan Roadkill Observation Network](http://roadkill.tw/) has been collect and document roadkill data for many years. These data can be used to raise awareness of conservation and help government making better regulations.  
+<a href="http://roadkill.tw/" target="_blank">Taiwan Roadkill Observation Network</a> has been collect and document roadkill data for many years. These data can be used to raise awareness of conservation and help government making better regulations.  
 
-The data can be found on [data.gov.tw](http://data.gov.tw/node/8338).
+The data can be found on <a href="http://data.gov.tw/node/8338" target="_blank">data.gov.tw</a>.
 
 ---
 
@@ -58,7 +58,7 @@ roadKill <- mutate(roadKill, month = as.character(month(roadKill$date)))
 
 countMonth <- count(roadKill$month)
 
-p2 <- gvisPieChart(countMonth, options=list(title="Roadkill percentage by Month", width="100%", height=480))
+p2 <- gvisPieChart(countMonth, options=list(title="Roadkill percentage by Month", width=960, height=480))
 print(p2, tag = 'chart')
 ```
 
@@ -84,8 +84,9 @@ print(p1, tag = 'chart')
 
 ## Acknowledgements
 
-[slidify](http://ramnathv.github.io/slidify/)  
-[googleVis](https://developers.google.com/chart/interactive/docs/reference)  
+<a href="http://ramnathv.github.io/slidify/" target="_blank">slidify</a>
+<a href="https://developers.google.com/chart/interactive/docs/reference" target="_blank">googleVis</a>
+<a href="https://www.facebook.com/wfas309" target="_blank">Image credit: Wildlife First Aid Station Facebook page</a>
 
 ---
 

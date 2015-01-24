@@ -1,0 +1,284 @@
+---
+title: 'Developing Data Products Project'
+author: "Chiu Wei Chieh"
+output: html_document
+---
+
+### Introduction
+
+Read more : [Endemic Species Research Institute website](http://tesrieng.tesri.gov.tw/show_index.php)
+raw data : [data.gov.tw](http://data.gov.tw/node/8338)
+
+### Load RoadKill dataset
+
+```{r eval=FALSE}
+rawText <- readLines('./data/RoadKilled_20150115152947.csv', encoding="UTF-8")
+raw <- read.csv(textConnection(paste0(rawText, collapse="\n")),  header=FALSE, stringsAsFactors=FALSE)
+names(raw) <- raw[1,]
+raw <- raw[-1,]
+
+rawCountyText <- readLines('./data/county_h.csv', encoding="BIG5")
+rawCounty <- read.csv(textConnection(paste0(rawCountyText, collapse="\n")),  header=FALSE, stringsAsFactors=FALSE)
+
+names(rawCounty) <- c("id", "chtName", "engName")
+head(rawCounty) # Too much redundant information
+
+```
+
+### Tidy dataset
+
+Use taxize package to get common Division (http://ropensci.org/tutorials/taxize.html)
+
+http://www.catalogueoflife.org/col/search/all
+http://taibif.tw/zh
+
+```{r eval=FALSE}
+library("taxize")
+
+# Check NA
+sum(is.na(raw$ScienceName))
+# Check missing value
+missingSciName <- raw[(nchar(raw$ScienceName) == 0),]
+missingFamily <- raw[(nchar(raw$Family) == 0),]
+
+# Remove missing Family data. Manually correct data takes too much time.
+tidyRaw <- raw[(nchar(raw$Family) != 0),]
+# Use the family list to get common names
+# Get the family list
+familyList <- levels(as.factor(tidyRaw$Family))
+engFamilyList <- lapply(familyList, function(x) unlist(strsplit(x, " "))[1])
+engFamilyList <- unlist(engFamilyList)
+
+engCommonFamilyNames <- sci2comm(scinames=engFamilyList, db='itis')
+
+engCommonFamilyNamesVector <- NULL
+for (n in engCommonFamilyNames)
+{
+  engCommonFamilyNamesVector <- rbind(engCommonFamilyNamesVector, n[1])
+}
+
+engCommonFamilyNamesVector <- as.vector(engCommonFamilyNamesVector)
+engSciCommonNames <- data.frame(Family = engFamilyList, commonName = engCommonFamilyNamesVector)
+# For those Family without common names, get common names of their order
+naCommon <- engSciCommonNames[is.na(engSciCommonNames$commonName),]$Family
+naOrderNames <- tax_name(query = naCommon, get = "order", db = "ncbi")
+naOrderNames$order[1] <- "Passeriformes" # 
+
+naOrderCommonNames <- sci2comm(scinames=naOrderNames$order, db='itis')
+engNaOrderNames <- NULL
+for (n in naOrderCommonNames)
+{
+  engNaOrderNames <- rbind(engNaOrderNames, n[1])
+}
+engNaOrderNames <- as.vector(engNaOrderNames)
+engNaOrderNames[5] <- "bats"
+engNaOrderNames
+naFamilyCommonNames <- data.frame(Family = as.character(naCommon), commonName = engNaOrderNames)
+
+naRows <- as.numeric(rownames(engSciCommonNames[is.na(engSciCommonNames$commonName),]))
+temp <- mutate(engSciCommonNames, comNameChar = as.character(commonName))
+
+for (i in 1:length(naRows))
+{ 
+  temp$comNameChar[naRows[i]] <- as.character(naFamilyCommonNames$commonName[i])
+}
+
+# Manually correction : Replace names with more common names
+temp$comNameChar[44] <- "Starlings"
+temp$comNameChar[30] <- "Rats"
+temp$comNameChar[24] <- "Lizards"
+temp$comNameChar[7] <- "Monkeys"
+temp$comNameChar[2] <- "Lizards"
+temp$comNameChar[39] <- "Tree Frogs"
+temp$comNameChar[10] <- "Typical Snakes"
+
+rowCount <- nrow(temp)
+for(i in 1:rowCount){
+  n <- temp$comNameChar[i]
+  head <- toupper(substring(n,1,1))
+  tail <- substring(n, 2, nchar(n))
+  temp$comNameChar[i] = paste0(toupper(substring(n,1,1)), substring(n, 2, nchar(n)),collapse = '')
+}
+
+finalNameList <- data.frame(Family = as.character(temp$Family), CommonName = temp$comNameChar, stringsAsFactors=FALSE)
+class(finalNameList$Family)
+class(finalNameList$CommonName)
+
+tidyRaw2 <- mutate(tidyRaw, FamilyCommon = " ")
+nrowTidy2 <- nrow(tidyRaw2)
+nrowFinal <- nrow(finalNameList)
+
+for(i in 1:nrowTidy2){  
+  for(j in 1:nrowFinal){
+    if(grepl(finalNameList$Family[j], tidyRaw2$Family[i])){
+      tidyRaw2$FamilyCommon[i] <- finalNameList$CommonName[j]
+      break
+    }
+  }
+}
+head(tidyRaw2)
+summary(tidyRaw2)
+
+tidyRaw3 <- tidyRaw2[(nchar(tidyRaw2$County) != 0),]
+head(tidyRaw3)
+tidyRaw4 <- tidyRaw3[,c("ObserveDate","County","WGS84Lon", "WGS84Lat", "Family", "FamilyCommon")]
+head(tidyRaw4)
+
+# Add English County Name
+chtCountyName <- levels(as.factor(tidyRaw4$County))
+chtCountyName
+engCountyName <- c("Taichung City", "Taipei City", "Taitung County", "Tainan City", "Yilan County", "Hualien County", "Kinmen County", "Nantou County", "Pingtung County", "Miaoli County", "Taoyuan County", "Kaohsiung County", "Yunlin County", "New Taipei City", "Hsinchu City", "Hsinchu County", "Chiayi City", "Chiayi County", "Changhua County", "PenghuCounty")
+
+chtEngCountyTable <- data.frame(chtName = chtCountyName, engName = engCountyName, stringsAsFactors = FALSE)
+
+tidyRaw4 <- mutate(tidyRaw4, engCounty = " ")
+
+
+nrow1 <- nrow(tidyRaw4)
+nrow2 <- nrow(chtEngCountyTable)
+
+for(i in 1:nrow1){  
+  for(j in 1:nrow2){
+    if(grepl(chtEngCountyTable$chtName[j], tidyRaw4$County[i])){
+      tidyRaw4$engCounty[i] <- chtEngCountyTable$engName[j]
+      break
+    }
+  }
+}
+
+# Remove data with missing geo location
+missingLon <- raw[(nchar(tidyRaw4$WGS84Lon) == 0),]
+missingLat <- raw[(nchar(tidyRaw4$WGS84Lat) == 0),]
+
+tidyRaw5 <- tidyRaw4[(nchar(tidyRaw4$WGS84Lon) != 0),]
+tidyRaw5 <- mutate(tidyRaw5, date = as.Date(ObserveDate))
+#tidyRaw5 <- tidyRaw5[order(tidyRaw5$date),]
+# Write new tidy dataset file
+pureEng <- tidyRaw5[,c("ObserveDate","WGS84Lon", "WGS84Lat", "engCounty","FamilyCommon","date")]
+#pureEng <- roadKill[,c("ObserveDate","WGS84Lon", "WGS84Lat", "engCounty","FamilyCommon","date")]
+write.csv(pureEng, file = "./data/tidyRoadKill.csv")
+#write.csv(tidyRaw5, file = "./data/tidyRoadKill.csv")
+```
+
+> Note : Be sure to mention that some data have been removed due to incomplete. We keep only 657 complete observation. But there are 1000 observation in the raw data.
+
+Citing taxize
+
+> Scott Chamberlain and Eduard Szocs (2013). taxize - taxonomic search and retrieval in R. F1000Research, 2:191. URL: http://f1000research.com/articles/2-191/v2.
+
+### Exploratory Analysis
+
+```{r warning=FALSE, fig.width=16, fig.height=12}
+library(plyr)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+roadKill <- read.csv("./data/tidyRoadKill.csv")
+
+#Make kill counts vs Family table
+factorFamily <- as.factor(roadKill$FamilyCommon)
+summaryFamily <- summary(factorFamily)
+namesFamily <- levels(factorFamily)
+familyCountTable <- data.frame(Family = namesFamily, Counts = summaryFamily, row.names = NULL)
+
+plot1 <- ggplot(data = roadKill, aes(FamilyCommon))
+plot1 <- plot1 + geom_bar() + coord_flip()
+plot1
+plot2 <- ggplot(data = roadKill, aes(engCounty))
+plot2 <- plot2 + geom_bar() + coord_flip()
+plot2
+plot3 <- ggplot(data = roadKill, aes(FamilyCommon, date))
+plot3 <- plot3 + geom_point() + coord_flip()
+plot3
+plot4 <- ggplot(data = roadKill, aes(FamilyCommon, engCounty))
+plot4 <- plot4 + geom_point() + coord_flip()
+plot4
+plot5 <- ggplot(data = roadKill, aes(date))
+plot5 <- plot5 + geom_bar() + coord_flip()
+plot5
+
+countFamily <- count(roadKill$FamilyCommon)
+
+Bar <- gvisBarChart(countFamily, options=list(
+                        width=600, height=600))
+plot(Bar)
+# totalCount by data
+```
+
+### Displaying maps on Shiny.
+
+> leaflet-shiny package (https://github.com/jcheng5/leaflet-shiny)
+> - note : Can't display fullscreen map.
+
+ui.R
+```{r eval=FALSE}
+library(shiny)
+library(leaflet)
+
+shinyUI(fluidPage(
+  leafletMap(
+    "map", 600, 800,
+    initialTileLayer = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+    initialTileLayerAttribution = HTML('Maps by <a href="http://www.mapbox.com/">Mapbox</a>'),
+    options=list(
+      center = c(23.713363, 120.691323),
+      zoom = 8
+    )
+  )
+))
+```
+
+server.R
+```{r eval=FALSE}
+library(shiny)
+library(leaflet)
+
+shinyServer(function(input, output, session){
+  map <- createLeafletMap(session, 'map')
+  session$onFlushed(once=TRUE, function() {
+    map$addMarker(23.5, 120, options=list(title="I am a marker"))
+  })  
+})
+```
+
+> rMaps/rCharts package (https://github.com/ramnathv/rMaps)
+> - Can't display fullscreen map. % for width and height isn't supported.
+> - Can't display both chart and map.
+
+ui.R
+```{r eval=FALSE}
+library(shiny)
+library(rMaps)
+
+shinyUI(pageWithSidebar(
+  headerPanel("Shiny, rCharts and DataMaps"),
+  sidebarPanel(
+    selectInput("pal", 'Select Palette', c('Blues', 'PuRd')),
+    numericInput("ncuts", 'Select Number of Breaks', value = 5, min = 4, max = 9)
+  ),
+  mainPanel(
+    rCharts::chartOutput('myMap', 'leaflet')  
+  )
+))
+```
+
+server.R
+```{r eval=FALSE}
+library(shiny)
+library(rMaps)
+
+map <- Leaflet$new()
+map$setView(c(51.505, -0.09), zoom = 13)
+map$tileLayer(provider = 'Stamen.Watercolor')
+map$marker(
+  c(51.5, -0.09),
+  bindPopup = 'Hi. I am a popup'
+)
+
+
+shinyServer(function(input, output, session){
+  output$myMap = rCharts::renderChart2({
+    map
+  })
+})
+```

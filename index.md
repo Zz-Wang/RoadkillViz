@@ -315,9 +315,9 @@ callbacks.shift()();
 
 ## Acknowledgements
 
-<a href="http://ramnathv.github.io/slidify/" target="_blank">slidify</a>
-<a href="https://developers.google.com/chart/interactive/docs/reference" target="_blank">googleVis</a>
-<a href="https://www.facebook.com/wfas309" target="_blank">Image credit: Wildlife First Aid Station Facebook page</a>
+<a href="http://ramnathv.github.io/slidify/" target="_blank">slidify</a>  
+<a href="https://developers.google.com/chart/interactive/docs/reference" target="_blank">googleVis</a>  
+<a href="https://www.facebook.com/wfas309" target="_blank">Image credit: Wildlife First Aid Station Facebook page</a>  
 
 ---
 

@@ -1,0 +1,88 @@
+---
+title       : Roadkill Observation Visualization
+subtitle    : 
+author      : Chiu Wei Chieh
+job         : Interactive Designer
+framework   : revealjs        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+```{r warning=FALSE, echo=FALSE}
+library(knitr)
+```
+## Taiwan Roadkill Observation Visualization
+
+Chiu Wei Chieh  
+
+--- 
+
+
+## Why
+
+To save beautiful animals like this Chinese leopard cat!  
+![Chinese leopard cat](./assets/img/Chinese leopard cat.jpg)   
+
+---
+
+## How
+
+[Taiwan Roadkill Observation Network](http://roadkill.tw/) has been collect and document roadkill data for many years. These data can be used to raise awareness of conservation and help government making better regulations.  
+
+The data can be found on [data.gov.tw](http://data.gov.tw/node/8338).
+
+---
+
+## What
+
+In this project, I use the data to create visualization to help people to understand how many animals were killed on the road and where did it happend. The visualization includes  
+
+- Interactive maps  
+- Interactive charts  
+
+<a href="http://licaschiou.shinyapps.io/Roadkill/" target="_blank">The app can be found here.</a>
+
+---
+
+## Example 1 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results = 'asis'}
+library(googleVis)
+library(plyr)
+require(lubridate)
+
+roadKill <- read.csv("./data/tidyRoadKill.csv")
+roadKill <- mutate(roadKill, month = as.character(month(roadKill$date)))
+
+countMonth <- count(roadKill$month)
+
+p2 <- gvisPieChart(countMonth, options=list(title="Roadkill percentage by Month", width="100%", height=480))
+print(p2, tag = 'chart')
+```
+
+---
+
+## Example 2 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results = 'asis'}
+library(googleVis)
+library(plyr)
+require(lubridate)
+
+roadKill <- read.csv("./data/tidyRoadKill.csv")
+roadKill <- mutate(roadKill, month = as.character(month(roadKill$date)))
+
+countCounty <- count(roadKill$engCounty)
+names(countCounty) <- c("county", "kill counts")
+p1 <- gvisBarChart(countCounty, xvar = "county", yvar = "kill counts",options=list(title="Roadkill percentage by county", width="100%", height=480))
+print(p1, tag = 'chart')
+```
+
+---
+
+## Acknowledgements
+
+[slidify](http://ramnathv.github.io/slidify/)  
+[googleVis](https://developers.google.com/chart/interactive/docs/reference)  
